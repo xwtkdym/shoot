@@ -3,3 +3,5 @@
 ESC: pause
 SPACE: shoot
 UP,DOWN,LEFT,RIGHT: move
+
+run the game by 'python3 main.py'
