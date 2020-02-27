@@ -1,4 +1,6 @@
 import pygame
+from . import Config
+from .Config import *
 
 class Cube(pygame.sprite.Sprite):
     def __init__(self, images, die_images, pos, speed, life, *groups):
@@ -32,7 +34,7 @@ class Cube(pygame.sprite.Sprite):
         return self.life <= 0
 
     def over(self):
-        return self.isdie() and self.image_index == len(self.images)
+        return self.isdie() and self.life == -len(self.images)
 
     def update(self):
         if self.isdie():
@@ -46,7 +48,9 @@ class Cube(pygame.sprite.Sprite):
                     for gun in self.key_guns:
                         gun.kill()
                 self.__update_die()
-                self.set_life(-1)
+                self.life -= 1
+            else:
+                self.life -= 1
         else:
             self.__speed_move()
             self.__auto_gun()

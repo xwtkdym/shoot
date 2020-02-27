@@ -31,12 +31,43 @@ collide_pair = (
 
 groups=None
 
+def is_prime(x):
+    if x == 2:
+        return True
+    for i in range(2, x, 1):
+        if x%i == 0:
+            return False
+        if i*i > x:
+            return True
+    return True
+
+class EchoCtr(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+
+    def update(self):
+        self.__update_image()
+
+    def __update_image(self):
+        game_ctr = Config.get_val("game_ctr")
+        image = pygame.image.load(os.path.join("images", "player_plane", "images", "me1.png")).convert_alpha()
+        image = pygame.transform.scale(image, [20, 30])
+        bg = pygame.Surface([60, 30])
+        for i in range(game_ctr):
+            bg.blit(image, [i*20, 0])
+        self.image = bg
+        self.rect = self.image.get_rect()
+        self.rect.left = Config.get_val("width") - 60
+        self.rect.top = 0
+        
+
+
 class Panel(pygame.sprite.Sprite):
     def __init__(self):
-        super().__init__()
+        pygame.sprite.Sprite.__init__(self)
         self.font=pygame.font.Font(None, 45)
-        self.image = self.__update_image()
         self.color_ctr = 0
+        self.image = self.__update_image()
         self.color = tc['green']
 
     def update(self):
@@ -63,17 +94,20 @@ class Panel(pygame.sprite.Sprite):
 
     def __to_image(self, life, score, color):
         percent = int(100*life/Config.get_val("max_life"))
-        image = pygame.Surface([300, 100])
+        bg = pygame.Surface([210, 24])
+        bg.fill(tc['pink'])
+        image = pygame.Surface([220, 80])
+        image.blit(bg, [5, 3])
         if percent > 0:
-            left = pygame.Surface([3*percent, 20])
+            left = pygame.Surface([2*percent, 18])
             left.fill(tc['green'])
         else:
-            left = pygame.Surface([1, 20])
+            left = pygame.Surface([1, 18])
             left.fill(tc['red'])
-        image.blit(left, [0, 10])
+        image.blit(left, [8, 7])
         text = (str(percent)+'%').ljust(3, ' ')
         text += ' '*2 + str(score)
-        image.blit(self.font.render(text, True, color), [0, 40])
+        image.blit(self.font.render(text, True, color), [5, 40])
         image.set_colorkey(tc['black'])
         return image
 
@@ -150,23 +184,28 @@ def game_init(screen, clock):
     Config.get_val("audio_bgm").set_volume(1)
     Config.get_val("audio_bgm").play(-1)
 
-def game_prepare():
-    #add player
-
-    bullet = Bullet.Bullet(read_images('player_bullet/images', [20, 20]), read_images('player_bullet/die_images', [20, 20]) , [-100, -100])
-    pos = [Config.get_val("width")/2, int(Config.get_val("height")*0.618)]
-
-    player = Plane.KeyPlane(read_images('player_plane/images', [70, 70]), read_images('player_plane/die_images', [50, 50]), pos, [0,0], Config.get_val("max_life"))
-    for x in range(63, 117, 9):
-        gun = Gun.Gun(Config.get_val("fps")/5, x, 10, bullet, groups[player_bullet_index], groups[gun_index])
-        player.add_key_gun(gun)
-    groups[player_index].add(player)
-
+    panel = Panel()
+    groups[system_index].add(panel)
+    echoctr = EchoCtr()
+    groups[system_index].add(echoctr)
     bullet = Bullet.Bullet(read_images('enemy_bullet/images', [20, 20]), read_images('enemy_bullet/die_images', [20, 20]) , [-100, -100])
     random_gun = Gun.RandomGun(bullet, groups[enemy_bullet_index], groups[gun_index])
 
-    panel = Panel()
-    groups[system_index].add(panel)
+def game_prepare():
+    #add player
+
+    bullet = Bullet.Bullet(read_images('player_bullet/images', [30, 30]), read_images('player_bullet/die_images', [30, 30]) , [-100, -100])
+    pos = [Config.get_val("width")/2, int(Config.get_val("height")*0.618)]
+
+    player = Plane.KeyPlane(read_images('player_plane/images', [70, 70]), read_images('player_plane/die_images', [50, 50]), pos, [0,0], Config.get_val("max_life"))
+    for x in range(1, 180, 1):
+        if not is_prime(x):
+            continue
+        gun = Gun.Gun(Config.get_val("fps")/10, x, 10, bullet, groups[player_bullet_index], groups[gun_index])
+        player.add_key_gun(gun)
+    groups[player_index].add(player)
+
+
 
 
 def game_run(screen, clock):
@@ -183,8 +222,9 @@ def game_run(screen, clock):
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and not game_is_over():
                 pause_flag = not pause_flag
         if pause_flag:
-            screen.blit(old_image, [0,0])
-            pygame.display.flip()
+            if old_image != None:
+                screen.blit(old_image, [0,0])
+                pygame.display.flip()
             continue
         else:
             old_image = screen
@@ -264,8 +304,10 @@ def game_loop(screen, clock):
     game_init(screen, clock)
     loop_flag = True
     while loop_flag:
-        game_prepare()
-        game_run(screen, clock)
+        while Config.get_val("game_ctr") > 0:
+            game_prepare()
+            game_run(screen, clock)
+            Config.set_val("game_ctr", Config.get_val("game_ctr")-1)
         game_over(screen, clock)
 
 if __name__ == '__main__':
