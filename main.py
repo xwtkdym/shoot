@@ -7,6 +7,7 @@ from pygame.color import THECOLORS as tc
 sys.path.append('.')
 
 from Base import *
+from Base.Config import config
 
 audio_hit=None
 audio_fire=None
@@ -19,8 +20,6 @@ player_bullet_index=2
 enemy_bullet_index=3
 gun_index=4
 system_index=5
-
-score=None
 
 collide_pair = (
         (player_index, enemy_index),
@@ -49,15 +48,17 @@ class EchoCtr(pygame.sprite.Sprite):
         self.__update_image()
 
     def __update_image(self):
-        game_ctr = Config.get_val("game_ctr")
+        game_ctr = config["game_ctr"]
         image = pygame.image.load(os.path.join("images", "player_plane", "images", "me1.png")).convert_alpha()
         image = pygame.transform.scale(image, [20, 30])
         bg = pygame.Surface([60, 30])
+        bg.fill(tc['black'])
         for i in range(game_ctr):
             bg.blit(image, [i*20, 0])
+        bg.set_colorkey(tc['black'])
         self.image = bg
         self.rect = self.image.get_rect()
-        self.rect.left = Config.get_val("width") - 60
+        self.rect.left = config["width"] - 60
         self.rect.top = 0
         
 
@@ -74,26 +75,26 @@ class Panel(pygame.sprite.Sprite):
         self.__update_image()
 
     def __update_image(self):
-        global groups, score
+        global groups
         row = 0
         for sprite in groups[player_index].sprites():
             row += 1
             life = sprite.get_life()
 
-            self.image = self.__to_image(life, score, tc['green'])
+            self.image = self.__to_image(life, config["score"], tc['green'])
 
         if 0 == row:
             if self.color_ctr % 10 == 0:
                 self.color = random_color()
             self.color_ctr += 1
-            self.image = self.__to_image(0, score, self.color)
+            self.image = self.__to_image(0, config["score"], self.color)
 
         self.rect = self.image.get_rect()
         self.rect.left = self.rect.top = 0
 
 
     def __to_image(self, life, score, color):
-        percent = int(100*life/Config.get_val("max_life"))
+        percent = int(100*life/config["max_life"])
         bg = pygame.Surface([210, 24])
         bg.fill(tc['pink'])
         image = pygame.Surface([220, 80])
@@ -118,20 +119,28 @@ class Group(pygame.sprite.Group):
 
     def kill_out_of_bounds(self):
         for sprite in self.sprites():
-            if (sprite.rect.top > Config.get_val("height")
+            if (sprite.rect.top > config["height"]
                     or sprite.rect.bottom < 0
-                    or sprite.rect.left > Config.get_val("width")
+                    or sprite.rect.left > config["width"]
                     or sprite.rect.right < 0):
                 self.remove(sprite)
     def kill_over(self):
         for sprite in self.sprites():
             if sprite.over():
+                if hasattr(sprite, "over_action"):
+                    sprite.over_action()
                 self.remove(sprite)
 
-def read_images(path, size=None):
+def read_images(path, size=None, colorkey=None):
     paths = sorted(os.listdir(os.path.join('images', path)))
-    images = [pygame.image.load(os.path.join('images', path, img_path)).convert_alpha() for img_path in paths]
-    if size:
+    image = None
+    if colorkey != None:
+        images = [pygame.image.load(os.path.join('images', path, img_path)).convert() for img_path in paths]
+        for image in images:
+            image.set_colorkey(colorkey)
+    else:
+        images = [pygame.image.load(os.path.join('images', path, img_path)).convert_alpha() for img_path in paths]
+    if size != None:
         images = [pygame.transform.scale(image, size) for image in images]
     return images
 
@@ -140,10 +149,10 @@ def random_color():
     return tuple(random.choice(level) for _ in range(3))
 
 def screen_flush(screen, clock):
-    if Config.get_val("bg_ctr") % int(Config.get_val("fps")/6) == 0:
-        Config.set_val("bg_image_index", (Config.get_val("bg_image_index")+1)%len(Config.get_val("bg_images")))
-    Config.set_val("bg_ctr", Config.get_val("bg_ctr")+1)
-    screen.blit(Config.get_val("bg_images")[Config.get_val("bg_image_index")], [0, 0])
+    if config["bg_ctr"] % int(config["fps"]/6) == 0:
+        config["bg_image_index"] = (config["bg_image_index"]+1)%len(config["bg_images"])
+    config["bg_ctr"] = config["bg_ctr"]+1
+    screen.blit(config["bg_images"][config["bg_image_index"]], [0, 0])
 
 
 def game_is_over():
@@ -155,7 +164,7 @@ def game_is_over():
 
 def display_start(screen, clock):
     while True:
-        clock.tick(Config.get_val("fps"))
+        clock.tick(config["fps"])
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -165,57 +174,95 @@ def display_start(screen, clock):
 
 def game_init(screen, clock):
     global audio_hit, audio_fire, audio_bgm
-    global groups, score
-    score = 0
+    global groups
+    config["score"] = 0
 
     groups=[]
     for i in range(6):
         groups.append(Group())
 
 
-    Config.set_val("bg_ctr", 0)
-    Config.set_val("bg_images", read_images('background', Config.get_val("size")))
-    Config.set_val("bg_image_index", 0)
-    Config.set_val("audio_hit" , pygame.mixer.Sound(os.path.join('music', 'hit.wav')))
-    Config.set_val("audio_fire", pygame.mixer.Sound(os.path.join('music', 'fire.wav')))
-    Config.set_val("audio_bgm", pygame.mixer.Sound(os.path.join('music', 'a.ogg')))
-    Config.get_val("audio_hit").set_volume(0.7)
-    Config.get_val("audio_fire").set_volume(0.7)
-    Config.get_val("audio_bgm").set_volume(1)
-    Config.get_val("audio_bgm").play(-1)
+    config["dec_cd_images"] = read_images("dec_cd/images", [40, 40], tc['white'])
+    config["dec_cd_die_images"] = read_images("dec_cd/die_images", [40, 40], tc['white'])
+    config["re_life_images"] = read_images("re_life/images", [40, 40], tc['white'])
+    config["re_life_die_images"] = read_images("re_life/die_images", [40, 40], tc['white'])
+    config["bg_ctr"] = 0
+    config["bg_images"]  = read_images('background', config["size"])
+    config["bg_image_index"]= 0
+    config["player_plane_images"] =read_images('player_plane/images', [70, 70])
+    config["player_plane_die_images"] = read_images('player_bullet/die_images', [70, 70])
+    config["player_bullet_images"] =read_images('player_bullet/images', [30, 30])
+    config["player_bullet_die_images"] = read_images('player_plane/die_images', [30, 30])
+    config["audio_hit" ] = pygame.mixer.Sound(os.path.join('music', 'hit.wav'))
+    config["audio_fire"] = pygame.mixer.Sound(os.path.join('music', 'fire.wav'))
+    config["audio_bgm"] = pygame.mixer.Sound(os.path.join('music', 'a.ogg'))
+    config["audio_hit"].set_volume(0.7)
+    config["audio_fire"].set_volume(0.7)
+    config["audio_bgm"].set_volume(1)
+    config["audio_bgm"].play(-1)
+
 
     panel = Panel()
     groups[system_index].add(panel)
     echoctr = EchoCtr()
     groups[system_index].add(echoctr)
     bullet = Bullet.Bullet(read_images('enemy_bullet/images', [20, 20]), read_images('enemy_bullet/die_images', [20, 20]) , [-100, -100])
+    bullet.set_over(True)
     random_gun = Gun.RandomGun(bullet, groups[enemy_bullet_index], groups[gun_index])
+
+
+    font=pygame.font.Font(None, 70)
+    color = None
+    color_ctr = 0
+    while True:
+        if color_ctr >= 3*config["fps"]:
+            return
+        if color_ctr%10 == 0:
+            color = random_color()
+        color_ctr += 1
+
+        clock.tick(config["fps"])
+        screen_flush(screen, clock)
+        font_surf = font.render(str('Enter any key!'), True, color)
+        screen.blit(font_surf, [int(config["width"]/2)-font_surf.get_width()/2, 
+                                int(config["height"]*3/4)-font_surf.get_height()/2])
+        
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                return
+
 
 def game_prepare():
     #add player
 
     bullet = Bullet.Bullet(read_images('player_bullet/images', [30, 30]), read_images('player_bullet/die_images', [30, 30]) , [-100, -100])
-    pos = [Config.get_val("width")/2, int(Config.get_val("height")*0.618)]
+    pos = [config["width"]/2, int(config["height"]*0.618)]
 
-    player = Plane.KeyPlane(read_images('player_plane/images', [70, 70]), read_images('player_plane/die_images', [50, 50]), pos, [0,0], Config.get_val("max_life"))
-    for x in range(1, 180, 1):
-        if not is_prime(x):
-            continue
-        gun = Gun.Gun(Config.get_val("fps")/10, x, 10, bullet, groups[player_bullet_index], groups[gun_index])
-        player.add_key_gun(gun)
+    player = Plane.KeyPlane(config["player_plane_images"], config["player_plane_die_images"], pos, [0,0], config["max_life"])
+
+    gun = Gun.Gun(config["fps"]/10, 90, 10, bullet, groups[player_bullet_index], groups[gun_index])
+    player.add_key_gun(gun)
     groups[player_index].add(player)
+
+    bullet = Bullet.Bullet(config['player_bullet_images'],  config['player_bullet_die_images'] , [-100, -100])
+    for x in range(0, 350, 40):
+        gun = Gun.Gun(config["fps"]/5, x, 10, bullet, groups[player_bullet_index], groups[gun_index])
+        player.add_auto_gun(gun)
 
 
 
 
 def game_run(screen, clock):
-    global groups, score
+    global groups
 
     running = 100
     pause_flag = False
     old_image = None
     while running:
-        clock.tick(Config.get_val("fps"))
+        clock.tick(config["fps"])
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
@@ -240,11 +287,11 @@ def game_run(screen, clock):
                     for sprite2 in groups[pair[1]].sprites():
                         if not sprite2.isdie():
                             if pygame.sprite.collide_mask(sprite1, sprite2):
-                                Config.get_val("audio_hit").play(0, 500)
-                                attack = min(sprite1.get_life(), sprite2.get_life())
-                                score += attack
-                                sprite1.set_life(sprite1.get_life()-attack)
-                                sprite2.set_life(sprite2.get_life()-attack)
+                                sprite2.collide_action(sprite1)
+                                #attack = min(sprite1.get_life(), sprite2.get_life())
+                                #score += attack
+                                #sprite1.set_life(sprite1.get_life()-attack)
+                                #sprite2.set_life(sprite2.get_life()-attack)
 
 
         for group in groups:
@@ -281,15 +328,17 @@ def game_over(screen, clock):
     for group in groups:
         group.empty()
     while True:
+        if color_ctr >= 3*config["fps"]:
+            return
         if color_ctr%10 == 0:
             color = random_color()
         color_ctr += 1
 
-        clock.tick(Config.get_val("fps"))
+        clock.tick(config["fps"])
         screen.fill(tc['black'])
         font_surf = font.render(str('Game Over!'), True, color)
-        screen.blit(font_surf, [Config.get_val("width")/2-font_surf.get_width()/2, 
-                                Config.get_val("height")/2-font_surf.get_height()/2])
+        screen.blit(font_surf, [config["width"]/2-font_surf.get_width()/2, 
+                                config["height"]/2-font_surf.get_height()/2])
         
         pygame.display.flip()
         for event in pygame.event.get():
@@ -301,19 +350,22 @@ def game_over(screen, clock):
 
 
 def game_loop(screen, clock):
-    game_init(screen, clock)
     loop_flag = True
     while loop_flag:
-        while Config.get_val("game_ctr") > 0:
+        game_init(screen, clock)
+        config["game_ctr"]= 3
+        while config["game_ctr"] > 0:
             game_prepare()
             game_run(screen, clock)
-            Config.set_val("game_ctr", Config.get_val("game_ctr")-1)
+            config["game_ctr"]= config["game_ctr"]-1
         game_over(screen, clock)
 
 if __name__ == '__main__':
+    global config
+    config = Config.ConfigClass()
     pygame.init()
     pygame.mixer.init()
-    screen = pygame.display.set_mode(Config.get_val("size"))
+    screen = pygame.display.set_mode(config["size"])
     pygame.display.set_caption('YunXiaoZhu')
     clock = pygame.time.Clock()
     game_loop(screen, clock)

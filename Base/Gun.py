@@ -5,7 +5,7 @@ import math
 from . import Bullet
 from . import Config
 from .Bullet import *
-from .Config import *
+from .Config import config
 
 class Gun(pygame.sprite.Sprite):
     def __init__(self, cd, angle, velocity, bullet, bullet_group, *groups):
@@ -16,9 +16,21 @@ class Gun(pygame.sprite.Sprite):
         self.shoot_cd = 0
         self.bullet = bullet
         self.bullet_group = bullet_group
+
+        self.time = -1
+
+    def copy(self):
+        return Gun(self.shoot_cd, self.angle, self.velocity,self.bullet, self.bullet_group, self.groups())
     
     def update(self):
+        if self.time == 0:
+            self.kill()
+        elif self.time > 0:
+            self.time -= 1
         self.shoot_cd = max(0, self.shoot_cd-1)
+
+    def set_time(self, time):
+        self.time = time*Config.get_val("fps")
 
     def shoot(self, pos):
         shooted = False
@@ -33,7 +45,7 @@ class Gun(pygame.sprite.Sprite):
 
             bullet.set_pos(pos)
             bullet.set_speed((velocity_x, velocity_y))
-            bullet.set_life(3)
+            bullet.set_life(2)
 
             self.bullet_group.add(bullet)
         return shooted
@@ -52,8 +64,10 @@ class RandomGun(pygame.sprite.Sprite):
     def shoot(self):
         if self.shoot_cd == 0:
             bullet = Bullet(self.bullet.images, self.bullet.die_images)
-            self.shoot_cd = random.randint(0, 1)
-            velocity = random.randint(5, 10)
+            bullet.set_over(self.bullet.OVER_ACTION)
+            bullet.set_die(self.bullet.DIE_ACTION)
+            self.shoot_cd = random.randint(0, 18)
+            velocity = random.randint(3, 7)
             angle = random.randint(190, 350)
             mul = random.randint(1,10)
             bullet.images = [pygame.transform.scale(image, [image.get_width()*mul, image.get_height()*mul]) for image in bullet.images]

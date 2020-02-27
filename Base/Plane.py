@@ -35,6 +35,7 @@ class KeyPlane(Cube):
                 self.rect.centery += row[2]
 
     def __key_gun(self):
+        print(len(self.key_guns), len(self.auto_guns))
         shooted = False
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
@@ -46,7 +47,8 @@ class KeyPlane(Cube):
 
 
     def add_key_gun(self, gun):
-        self.key_guns.append(gun)
+        self.key_guns.add(gun)
+        #self.key_guns.append(gun)
 
     def __move_modify(self):
         if self.rect.top < 0:

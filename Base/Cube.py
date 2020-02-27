@@ -11,12 +11,19 @@ class Cube(pygame.sprite.Sprite):
         self.rect = pygame.Rect(-100, -100, 0, 0)
         self.__play_image()
 
-        self.auto_guns = []
-        self.key_guns = []
+        self.auto_guns = pygame.sprite.Group()
+        self.key_guns = pygame.sprite.Group()
 
         self.set_pos(pos)
         self.set_speed(speed)
         self.set_life(life)
+
+        self.OVER_ACTION = False
+        self.DIE_ACTION = False
+    def set_over(self, val):
+        self.OVER_ACTION = val
+    def set_die(self, val):
+        self.DIE_ACTION = val
 
     def __animation_init(self, images):
         ret = []
@@ -35,6 +42,13 @@ class Cube(pygame.sprite.Sprite):
 
     def over(self):
         return self.isdie() and self.life == -len(self.images)
+    
+    def collide_action(self, sprite):
+        pass
+    def die_action(self):
+        pass
+    def over_action(self):
+        pass
 
     def update(self):
         if self.isdie():
@@ -49,6 +63,7 @@ class Cube(pygame.sprite.Sprite):
                         gun.kill()
                 self.__update_die()
                 self.life -= 1
+                self.die_action()
             else:
                 self.life -= 1
         else:
@@ -68,9 +83,9 @@ class Cube(pygame.sprite.Sprite):
         if life != None:
             self.life = life
 
-    def add_auto_gun(self, *guns):
-        for gun in guns:
-            self.auto_guns.append(guns)
+    def add_auto_gun(self, gun):
+        self.auto_guns.add(gun)
+#        self.auto_guns.append(gun)
 
     def __speed_move(self):
         self.rect.x += self.speed[0]
@@ -79,7 +94,7 @@ class Cube(pygame.sprite.Sprite):
     def __auto_gun(self):
         for gun in self.auto_guns:
             if hasattr(gun, 'shoot'):
-                gun.shoot()
+                gun.shoot(self.rect.midtop)
     def __play_image(self):
         self.image_index = self.image_index%len(self.images)
         pos = self.rect.center
@@ -92,3 +107,6 @@ class Cube(pygame.sprite.Sprite):
     def __update_die(self):
         self.images = self.die_images
         self.image_index= 0
+
+    def get_name(self):
+        return self.__class__.__name__
