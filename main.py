@@ -181,6 +181,11 @@ def game_init(screen, clock):
     for i in range(6):
         groups.append(Group())
 
+#for ClearScreeen
+    config["enemy_bullet_group"] = groups[enemy_bullet_index]
+    config["clear_screen_images"] = read_images("clear_screen/images", [40, 40], tc['white'])
+    config["clear_screen_die_images"] = read_images("clear_screen/die_images", [40, 40], tc['white'])
+
 
     config["dec_cd_images"] = read_images("dec_cd/images", [40, 40], tc['white'])
     config["dec_cd_die_images"] = read_images("dec_cd/die_images", [40, 40], tc['white'])
