@@ -35,7 +35,7 @@ class KeyPlane(Cube):
                 self.rect.centery += row[2]
 
     def __key_gun(self):
-        print(len(self.key_guns), len(self.auto_guns))
+        print('Quick-firing gun: ', len(self.key_guns), 'Slow-firing gun: ',  len(self.auto_guns))
         shooted = False
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:

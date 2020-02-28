@@ -61,9 +61,9 @@ class Cube(pygame.sprite.Sprite):
                 if hasattr(self, 'key_guns'):
                     for gun in self.key_guns:
                         gun.kill()
+                self.die_action()
                 self.__update_die()
                 self.life -= 1
-                self.die_action()
             else:
                 self.life -= 1
         else:

@@ -183,6 +183,7 @@ def game_init(screen, clock):
 
 #for ClearScreeen
     config["enemy_bullet_group"] = groups[enemy_bullet_index]
+    config["gun_group"] = groups[gun_index]
     config["clear_screen_images"] = read_images("clear_screen/images", [40, 40], tc['white'])
     config["clear_screen_die_images"] = read_images("clear_screen/die_images", [40, 40], tc['white'])
 
@@ -253,7 +254,7 @@ def game_prepare():
     groups[player_index].add(player)
 
     bullet = Bullet.Bullet(config['player_bullet_images'],  config['player_bullet_die_images'] , [-100, -100])
-    for x in range(0, 350, 40):
+    for x in range(0, 360, 45):
         gun = Gun.Gun(config["fps"]/5, x, 10, bullet, groups[player_bullet_index], groups[gun_index])
         player.add_auto_gun(gun)
 

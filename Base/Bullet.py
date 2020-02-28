@@ -16,21 +16,30 @@ class Bullet(Cube):
         Config.get_val("audio_hit").play(0, 500)
         Config.set_val("score", Config.get_val("score")+drop_life)
     def die_action(self):
-        pass
+        for group in self.groups():
+            if group == Config.get_val("enemy_bullet_group"):
+                return
+        if random.randint(1,100) > 25:
+            return
+        bullet = Bullet(self.die_images, self.die_images)
+        for angle in range(0, 360, 45):
+            gun = Gun.Gun(0, angle, 10, bullet, self.groups()[0])
+            gun.shoot(self.rect.center)
+            gun.kill()
 
     def over_action(self):
         if not self.OVER_ACTION:
             return
         rand_val = random.randint(1,100)
-        if rand_val < 30:
+        if rand_val < 10:
             DecCd(Config.get_val("dec_cd_images"), Config.get_val("dec_cd_die_images"), 
-                    self.rect.center, [0, self.speed[1]+1], 1, self.groups())
-        elif rand_val < 30:
+                    self.rect.center, [0, self.speed[1]+2], 1, self.groups())
+        elif rand_val < 20:
             ReLife(Config.get_val("re_life_images"), Config.get_val("re_life_die_images"), 
-                    self.rect.center, [0, self.speed[1]+1], 1, self.groups())
-        elif rand_val < 100:
+                    self.rect.center, [0, self.speed[1]+2], 1, self.groups())
+        elif rand_val < 30:
             ClearScreen(Config.get_val("clear_screen_images"), Config.get_val("clear_screen_die_images"), 
-                    self.rect.center, [0, self.speed[1]+1], 1, self.groups())
+                    self.rect.center, [0, self.speed[1]+2], 1, self.groups())
 
 class DecCd(Cube):
     def __init__(self, images, die_images, pos, speed, life=1,  *groups):
@@ -44,6 +53,7 @@ class DecCd(Cube):
         if sprite.get_name() != "KeyPlane":
             return
         self.__double_attr(sprite, "key_guns")
+#        self.__double_attr(sprite, "auto_guns")
         self.kill()
 
     def __double_attr(self, sprite, attr_name):
@@ -77,10 +87,11 @@ class ClearScreen(Cube):
     def __init__(self, images, die_images, pos, speed, life=1,  *groups):
         Cube.__init__(self, images, die_images, pos, speed, life, groups)
 
-    def update(self):
-        pass
-
     def collide_action(self, sprite):
-        Config.get_val("enemy_bullet_group").empty()
-        #self.kill()
+        if sprite.get_name() != "KeyPlane":
+            return
+        for mob in Config.get_val("enemy_bullet_group"):
+            Config.set_val("score", Config.get_val("score")+mob.get_life())
+            mob.set_life(0)
+        self.kill()
 

@@ -30,7 +30,7 @@ class Gun(pygame.sprite.Sprite):
         self.shoot_cd = max(0, self.shoot_cd-1)
 
     def set_time(self, time):
-        self.time = time*Config.get_val("fps")
+        self.time = int(time*Config.get_val("fps"))
 
     def shoot(self, pos):
         shooted = False
