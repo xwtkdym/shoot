@@ -66,7 +66,7 @@ class RandomGun(pygame.sprite.Sprite):
             bullet = Bullet(self.bullet.images, self.bullet.die_images)
             bullet.set_over(self.bullet.OVER_ACTION)
             bullet.set_die(self.bullet.DIE_ACTION)
-            self.shoot_cd = random.randint(0, 18)
+            self.shoot_cd = random.randint(0, 10)
             velocity = random.randint(3, 7)
             angle = random.randint(190, 350)
             mul = random.randint(1,10)

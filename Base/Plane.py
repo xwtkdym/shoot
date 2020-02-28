@@ -23,8 +23,8 @@ class KeyPlane(Cube):
         self.__key_move()
         self.__move_modify()
         shooted = self.__key_gun()
-        if shooted and random.randint(1,100) == 1:
-            self.set_life(min(self.get_life()+max(1,int(0.01*Config.get_val("max_life"))), Config.get_val("max_life")))
+#        if shooted and random.randint(1,100) == 1:
+#            self.set_life(min(self.get_life()+max(1,int(0.01*Config.get_val("max_life"))), Config.get_val("max_life")))
 
 
     def __key_move(self):

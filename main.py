@@ -20,12 +20,14 @@ player_bullet_index=2
 enemy_bullet_index=3
 gun_index=4
 system_index=5
+buff_index=6
 
 collide_pair = (
         (player_index, enemy_index),
         (player_index, enemy_bullet_index),
         (player_bullet_index, enemy_index),
-        (player_bullet_index, enemy_bullet_index)
+        (player_bullet_index, enemy_bullet_index),
+        (player_index, buff_index)
     )
 
 groups=None
@@ -178,12 +180,13 @@ def game_init(screen, clock):
     config["score"] = 0
 
     groups=[]
-    for i in range(6):
+    for i in range(7):
         groups.append(Group())
 
 #for ClearScreeen
     config["enemy_bullet_group"] = groups[enemy_bullet_index]
     config["gun_group"] = groups[gun_index]
+    config["buff_group"] = groups[buff_index]
     config["clear_screen_images"] = read_images("clear_screen/images", [40, 40], tc['white'])
     config["clear_screen_die_images"] = read_images("clear_screen/die_images", [40, 40], tc['white'])
 
@@ -255,6 +258,8 @@ def game_prepare():
 
     bullet = Bullet.Bullet(config['player_bullet_images'],  config['player_bullet_die_images'] , [-100, -100])
     for x in range(0, 360, 45):
+        if x == 90:
+            continue
         gun = Gun.Gun(config["fps"]/5, x, 10, bullet, groups[player_bullet_index], groups[gun_index])
         player.add_auto_gun(gun)
 

@@ -19,7 +19,7 @@ class Bullet(Cube):
         for group in self.groups():
             if group == Config.get_val("enemy_bullet_group"):
                 return
-        if random.randint(1,100) > 25:
+        if random.randint(1,100) > 20:
             return
         bullet = Bullet(self.die_images, self.die_images)
         for angle in range(0, 360, 45):
@@ -31,15 +31,15 @@ class Bullet(Cube):
         if not self.OVER_ACTION:
             return
         rand_val = random.randint(1,100)
-        if rand_val < 10:
+        if rand_val < 5:
             DecCd(Config.get_val("dec_cd_images"), Config.get_val("dec_cd_die_images"), 
-                    self.rect.center, [0, self.speed[1]+2], 1, self.groups())
-        elif rand_val < 20:
+                    self.rect.center, [0, self.speed[1]+2], 1, Config.get_val("buff_group"))
+        elif rand_val < 10:
             ReLife(Config.get_val("re_life_images"), Config.get_val("re_life_die_images"), 
-                    self.rect.center, [0, self.speed[1]+2], 1, self.groups())
-        elif rand_val < 30:
+                    self.rect.center, [0, self.speed[1]+2], 1, Config.get_val("buff_group"))
+        elif rand_val < 15:
             ClearScreen(Config.get_val("clear_screen_images"), Config.get_val("clear_screen_die_images"), 
-                    self.rect.center, [0, self.speed[1]+2], 1, self.groups())
+                    self.rect.center, [0, self.speed[1]+2], 1, Config.get_val("buff_group"))
 
 class DecCd(Cube):
     def __init__(self, images, die_images, pos, speed, life=1,  *groups):
