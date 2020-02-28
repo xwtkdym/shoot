@@ -96,6 +96,7 @@ class Panel(pygame.sprite.Sprite):
 
 
     def __to_image(self, life, score, color):
+        score = int(score/1000)
         percent = int(100*life/config["max_life"])
         bg = pygame.Surface([210, 24])
         bg.fill(tc['pink'])
@@ -224,8 +225,8 @@ def game_init(screen, clock):
     color = None
     color_ctr = 0
     while True:
-        if color_ctr >= 3*config["fps"]:
-            return
+#        if color_ctr >= 3*config["fps"]:
+#            return
         if color_ctr%10 == 0:
             color = random_color()
         color_ctr += 1

@@ -45,7 +45,7 @@ class Gun(pygame.sprite.Sprite):
 
             bullet.set_pos(pos)
             bullet.set_speed((velocity_x, velocity_y))
-            bullet.set_life(2)
+            bullet.set_life(7)
 
             self.bullet_group.add(bullet)
         return shooted
@@ -72,7 +72,7 @@ class RandomGun(pygame.sprite.Sprite):
             mul = random.randint(1,10)
             bullet.images = [pygame.transform.scale(image, [image.get_width()*mul, image.get_height()*mul]) for image in bullet.images]
             bullet.die_images = [pygame.transform.scale(image, [image.get_width()*mul, image.get_height()*mul]) for image in bullet.die_images]
-            bullet.set_life(5*mul*bullet.life)
+            bullet.set_life(100*mul*bullet.life)
 
             velocity_x = velocity*math.cos(angle*math.pi/180)
             velocity_y = - velocity*math.sin(angle*math.pi/180)

@@ -2,7 +2,7 @@ import re
 class ConfigClass:
     size = width, height = 640, 800
     fps = 60
-    max_life = 500
+    max_life = 3000
     game_ctr = 3
     key_guns_ctr =1 
     auto_guns_ctr =9 
